@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{ plan.title }} - Mechlogix</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
+<style>
+  .flash-stack { margin-bottom: 16px; display: grid; gap: 10px; }
+  .flash-message { padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); }
+  .flash-message.success { border-color: rgba(0,212,170,0.3); }
+  .flash-message.warning { border-color: rgba(245,158,11,0.3); }
+</style>
+</head>
+<body data-page="" class="{{ theme_class }}">
+
+<nav class="navbar">
+  <a href="{{ url_for('dashboard') }}" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <span class="nav-logo-text">Mechlogix</span>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}" class="nav-link" data-page="dashboard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="{{ url_for('new_plan') }}" class="nav-link" data-page="new-plan">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      New Plan
+    </a>
+    <a href="{{ url_for('history') }}" class="nav-link" data-page="history">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </a>
+    <a href="{{ url_for('settings') }}" class="nav-link" data-page="settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Settings
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="{{ url_for('settings') }}" class="nav-user">
+      <div class="nav-avatar">{{ current_user.name[:1]|upper }}</div>
+      <span class="nav-user-name">{{ current_user.name }}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text3);margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+    <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+  </div>
+</nav>
+
+<div class="page-full" style="max-width:1000px;margin:0 auto">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-stack">
+      {% for category, message in messages %}
+      <div class="flash-message {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="plan-header fade-in">
+    <div class="plan-back">
+      <button class="plan-back-btn" onclick="window.location='{{ url_for('dashboard') }}'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <h1 class="plan-title">{{ plan.title }}</h1>
+        <div class="plan-meta">
+          <span class="badge {{ badge_class(plan.status) }}">{{ plan.status }}</span>
+          <span class="plan-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
+            Google Gemini
+          </span>
+          <span class="plan-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            {{ humanize_input_type(plan.input_type) }}
+          </span>
+          <span class="plan-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {{ format_datetime(plan.created_at) }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <form method="POST" action="{{ url_for('delete_plan', plan_id=plan.id) }}" onsubmit="return confirm('Delete this plan?');">
+      <button class="btn btn-danger btn-sm" type="submit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Delete
+      </button>
+    </form>
+  </div>
+
+  <div class="summary-section fade-in delay-1">
+    <div class="summary-label">Original Input</div>
+    <p style="font-size:14px;color:var(--text2);font-family:var(--mono);white-space:pre-wrap">{{ plan.input_text }}</p>
+  </div>
+
+  {% if parsed_json %}
+  <div class="grid-3 fade-in delay-2" style="margin-bottom:12px">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.15)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <div class="metric-label">Estimated Cost</div>
+        <div class="metric-value">${{ parsed_json.cost_estimate['min'] }} - ${{ parsed_json.cost_estimate['max'] }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(0,178,232,0.1);border:1px solid rgba(0,178,232,0.15)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00b2e8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div class="metric-label">Estimated Time</div>
+        <div class="metric-value">{{ parsed_json.time_estimate['min_days'] }}-{{ parsed_json.time_estimate['max_days'] }} business days</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.15)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+      </div>
+      <div>
+        <div class="metric-label">Quality Score</div>
+        <div class="flex items-center gap-8">
+          <div class="metric-value" style="color:#f59e0b">{{ parsed_json.quality_score }}/100</div>
+          <div class="quality-bar">
+            <div class="quality-track"><div class="quality-fill" style="width:{{ clamp_percent(parsed_json.quality_score) }}%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-section fade-in delay-2">
+    <div class="summary-label" style="color:var(--primary)">Plan Summary</div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.6">{{ parsed_json.plan_summary }}</p>
+  </div>
+
+  <div class="summary-section fade-in delay-3">
+    <div class="summary-label" style="color:var(--primary)">Design Analysis</div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.6">{{ parsed_json.design_analysis }}</p>
+  </div>
+  {% endif %}
+
+  <div class="card fade-in delay-3" style="margin-bottom:80px">
+    <div class="tabs" data-tab-group="plan">
+      <div class="tab {% if active_tab == 'manufacturing' %}active{% endif %}" data-tab="manufacturing">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Manufacturing Plan
+      </div>
+      <div class="tab {% if active_tab == 'xai' %}active{% endif %}" data-tab="xai">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        XAI Explainability
+      </div>
+      <div class="tab {% if active_tab == 'simulation' %}active{% endif %}" data-tab="simulation">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Digital Twin Simulation
+      </div>
+      <div class="tab {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Raw Response
+      </div>
+    </div>
+
+    <div class="tab-content {% if active_tab == 'manufacturing' %}active{% endif %}" data-tab-panel="plan" data-panel="manufacturing">
+      <div style="padding:20px">
+        {% if parsed_json and parsed_json.steps %}
+          {% for step in parsed_json.steps %}
+          <div class="accordion-item {% if loop.first %}open{% endif %}">
+            <div class="accordion-header">
+              <div class="accordion-num">{{ step.step }}</div>
+              <div>
+                <div class="accordion-title">{{ step.name }}</div>
+                <div class="accordion-sub">{{ step.subtitle }}</div>
+              </div>
+              <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="accordion-body">
+              <p class="accordion-desc">{{ step.description }}</p>
+              <div class="accordion-grid">
+                <div>
+                  <div class="accordion-section-title text-primary">Equipment</div>
+                  <ul class="accordion-list">
+                    {% for item in step.equipment %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <div class="accordion-section-title" style="color:#00b2e8">Materials</div>
+                  <ul class="accordion-list">
+                    {% for item in step.materials %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <div class="accordion-section-title" style="color:var(--warning)">Quality Checks</div>
+                  <ul class="accordion-list">
+                    {% for item in step.quality_checks %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <div class="accordion-section-title" style="color:var(--danger)">Risks &amp; Mitigations</div>
+                  {% for risk in step.risks %}
+                  <div class="risk-item">
+                    <span class="risk-warn">{{ risk.issue }}</span><br/>
+                    <span style="color:var(--text3)">-></span> <span class="risk-link">{{ risk.mitigation }}</span>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <p class="text-muted">No structured manufacturing plan is available for this response.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="tab-content {% if active_tab == 'xai' %}active{% endif %}" data-tab-panel="plan" data-panel="xai">
+      <div style="padding:24px">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">XAI Feature Importance</h3>
+        <p class="text-muted text-sm mb-20">Factors influencing AI manufacturing plan decisions</p>
+        {% if parsed_json and parsed_json.xai_factors %}
+          {% for factor in parsed_json.xai_factors %}
+          <div class="xai-bar-row">
+            <div class="xai-bar-label">{{ factor.label }}</div>
+            <div class="xai-bar-track"><div class="xai-bar-fill" style="width:{{ clamp_percent(factor.score) }}%"></div></div>
+            <div class="xai-bar-pct">{{ clamp_percent(factor.score) }}%</div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <p class="text-muted">No explainability factors were returned.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="tab-content {% if active_tab == 'simulation' %}active{% endif %}" data-tab-panel="plan" data-panel="simulation">
+      <div style="padding:24px">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">Digital Twin Simulation Results</h3>
+        <p class="text-muted text-sm mb-20">Virtual testing outcomes across key performance metrics</p>
+        {% if parsed_json and parsed_json.simulation %}
+        <div class="sim-grid">
+          <div class="sim-card"><div class="sim-value">{{ parsed_json.simulation['yield_pct'] }}%</div><div class="sim-label">Process Yield</div></div>
+          <div class="sim-card"><div class="sim-value" style="color:#00b2e8">{{ parsed_json.simulation['accuracy'] }}</div><div class="sim-label">Dimensional Accuracy</div></div>
+          <div class="sim-card"><div class="sim-value" style="color:#f59e0b">${{ parsed_json.simulation['optimized_cost'] }}</div><div class="sim-label">Optimized Cost</div></div>
+          <div class="sim-card"><div class="sim-value">{{ parsed_json.simulation['optimized_days'] }} days</div><div class="sim-label">Optimized Lead Time</div></div>
+          <div class="sim-card"><div class="sim-value" style="color:#8b5cf6">{{ parsed_json.simulation['compliance_pct'] }}%</div><div class="sim-label">Compliance</div></div>
+          <div class="sim-card"><div class="sim-value" style="color:#ef4444">{{ parsed_json.simulation['risk_count'] }}</div><div class="sim-label">Risk Factors Identified</div></div>
+        </div>
+        <div class="summary-section" style="background:rgba(0,212,170,0.04)">
+          <div class="summary-label text-primary">Simulation Summary</div>
+          <p class="text-muted" style="font-size:13.5px;line-height:1.6">Simulation projects {{ parsed_json.simulation['yield_pct'] }}% yield, {{ parsed_json.simulation['accuracy'] }} accuracy, optimized cost of ${{ parsed_json.simulation['optimized_cost'] }}, and {{ parsed_json.simulation['risk_count'] }} tracked risk factors.</p>
+        </div>
+        {% else %}
+        <p class="text-muted">No simulation data was returned.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" data-tab-panel="plan" data-panel="raw">
+      <div style="padding:24px">
+        <pre style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:18px;font-family:var(--mono);font-size:12px;color:var(--text2);overflow-x:auto;line-height:1.7;white-space:pre-wrap">{{ plan.raw_response }}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:24px;right:32px;z-index:50">
+  <button class="btn btn-primary" style="box-shadow:0 4px 20px rgba(0,212,170,0.3)" type="button" onclick="window.print()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export Full Report
+  </button>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
