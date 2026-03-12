@@ -17,6 +17,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_from_directory,
     session,
     url_for,
 )
@@ -207,7 +208,19 @@ def inject_globals():
     }
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
+def index():
+    if session.get("user_id"):
+        return redirect(url_for("dashboard"))
+    return render_template("index.html")
+
+
+@app.route("/template-assets/<path:filename>")
+def template_asset(filename):
+    return send_from_directory(os.path.join(BASE_DIR, "templates"), filename)
+
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("user_id"):
         return redirect(url_for("dashboard"))
@@ -340,7 +353,7 @@ def google_callback():
 def logout():
     session.clear()
     flash("You have been signed out.", "success")
-    return redirect(url_for("login"))
+    return redirect(url_for("index"))
 
 
 @app.route("/dashboard")

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mechlogix - Engineering Designs to Manufacturing Plans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           hsl(220,25%,6%);
+  --fg:           hsl(200,20%,92%);
+  --card:         hsl(215,30%,10%);
+  --primary:      hsl(174,72%,50%);
+  --primary-fg:   hsl(220,25%,6%);
+  --muted-fg:     hsl(215,15%,55%);
+  --border:       hsl(215,25%,18%);
+  --info:         hsl(199,89%,48%);
+  --radius:       0.75rem;
+  --gp:           linear-gradient(135deg, hsl(174,72%,50%), hsl(199,89%,48%));
+  --gh:           linear-gradient(180deg, hsla(220,25%,6%,0) 0%, hsla(220,25%,6%,.82) 58%, hsl(220,25%,6%) 100%);
+  --gc:           linear-gradient(145deg, hsla(215,30%,14%,.8), hsla(215,30%,10%,.6));
+  --glow:         0 0 32px -4px hsla(174,72%,50%,.32);
+  --glow-sm:      0 0 16px -3px hsla(174,72%,50%,.22);
+  --shadow:       0 8px 32px -8px hsla(0,0%,0%,.55);
+  --fd:           "Orbitron", sans-serif;
+  --fb:           "Inter", sans-serif;
+  --fm:           "JetBrains Mono", monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--fb);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+img{display:block}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:60px;display:flex;align-items:center;padding:0 36px;
+  background:hsla(220,25%,6%,.82);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid hsla(215,25%,18%,.55);
+  transition:background .25s,border-color .25s;
+}
+.nav.solid{background:hsla(220,25%,6%,.97);border-bottom-color:hsla(215,25%,18%,.9)}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.1em}
+.logo-box{width:30px;height:30px;border-radius:7px;background:var(--gp);display:flex;align-items:center;justify-content:center;box-shadow:var(--glow-sm)}
+.nav-mid{display:flex;align-items:center;gap:4px;margin:0 auto}
+.nl{padding:6px 15px;font-size:13.5px;font-weight:500;color:var(--muted-fg);border-radius:6px;transition:color .15s}
+.nl:hover{color:var(--fg)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.btn-ghost{font-size:13.5px;font-weight:500;color:var(--fg);padding:7px 16px;border-radius:var(--radius);transition:color .15s;cursor:pointer}
+.btn-ghost:hover{color:var(--primary)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:var(--gp);color:var(--primary-fg);font-size:13.5px;font-weight:700;border-radius:var(--radius);border:none;cursor:pointer;box-shadow:var(--glow-sm);transition:all .2s;font-family:var(--fb)}
+.btn:hover{box-shadow:var(--glow);transform:translateY(-1px);filter:brightness(1.06)}
+.btn-ol{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:transparent;border:1px solid hsla(200,20%,92%,.2);color:var(--fg);font-size:14px;font-weight:600;border-radius:var(--radius);cursor:pointer;transition:all .2s;font-family:var(--fb)}
+.btn-ol:hover{border-color:hsla(200,20%,92%,.38);background:hsla(200,20%,92%,.05)}
+
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 40px 90px;overflow:hidden}
+.hbg{position:absolute;inset:0;z-index:0}
+.hbg-img{width:100%;height:100%;object-fit:cover;object-position:center 35%;filter:brightness(.38) saturate(.65)}
+.hbg-ov{position:absolute;inset:0;background:var(--gh)}
+.hbg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(hsla(174,72%,50%,.035) 1px,transparent 1px),linear-gradient(90deg,hsla(174,72%,50%,.035) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+.orb1{width:560px;height:380px;background:hsla(174,72%,50%,.07);top:-80px;left:50%;transform:translateX(-50%)}
+.orb2{width:280px;height:280px;background:hsla(199,89%,48%,.05);bottom:80px;right:10%}
+.hero-in{position:relative;z-index:1}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;background:hsla(174,72%,50%,.08);border:1px solid hsla(174,72%,50%,.22);border-radius:999px;font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);margin-bottom:30px;animation:fd .6s ease both}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 8px var(--primary);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.h1{font-family:var(--fd);font-size:clamp(38px,6.5vw,76px);font-weight:800;line-height:1.04;letter-spacing:-.01em;margin-bottom:26px;animation:fu .7s ease .1s both}
+.h1w{color:var(--fg)}
+.h1t{display:block;background:var(--gp);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-p{font-size:15.5px;color:var(--muted-fg);line-height:1.72;max-width:620px;margin:0 auto 42px;animation:fu .7s ease .2s both}
+.hero-btns{display:flex;align-items:center;justify-content:center;gap:14px;animation:fu .7s ease .3s both}
+.btn-lg{font-size:14px;padding:10px 26px}
+@keyframes fd{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+section{padding:96px 40px}
+.lbl{font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--primary);text-align:center;margin-bottom:14px}
+.st{font-family:var(--fd);font-size:clamp(24px,4vw,44px);font-weight:700;text-align:center;color:var(--fg);margin-bottom:13px;line-height:1.12}
+.sd{text-align:center;color:var(--muted-fg);font-size:14.5px;max-width:520px;margin:0 auto 58px;line-height:1.68}
+
+.cap-sec{position:relative;background:var(--bg)}
+.cap-sec::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(hsla(174,72%,50%,.025) 1px,transparent 1px),linear-gradient(90deg,hsla(174,72%,50%,.025) 1px,transparent 1px);background-size:56px 56px}
+.cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1120px;margin:0 auto;position:relative;z-index:1}
+.cc{background:var(--gc);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;transition:all .25s;position:relative;overflow:hidden}
+.cc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,hsla(174,72%,50%,.35),transparent);opacity:0;transition:opacity .25s}
+.cc:hover{border-color:hsla(174,72%,50%,.28);box-shadow:var(--glow-sm);transform:translateY(-3px)}
+.cc:hover::after{opacity:1}
+.ci{width:46px;height:46px;border-radius:11px;background:hsla(174,72%,50%,.1);border:1px solid hsla(174,72%,50%,.16);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--primary);transition:all .25s}
+.cc:hover .ci{background:hsla(174,72%,50%,.16);box-shadow:var(--glow-sm)}
+.cn{font-family:var(--fd);font-size:14.5px;font-weight:700;color:var(--fg);margin-bottom:7px}
+.ct{font-size:12.5px;color:var(--muted-fg);line-height:1.6}
+
+.how{background:hsl(215,28%,8%);position:relative;overflow:hidden}
+.how::before{content:'';position:absolute;top:50%;left:-180px;transform:translateY(-50%);width:480px;height:480px;background:radial-gradient(ellipse,hsla(174,72%,50%,.06),transparent 70%);pointer-events:none}
+.how-wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1}
+.how-lbl{font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--primary);margin-bottom:14px}
+.how-h2{font-family:var(--fd);font-size:clamp(22px,3.2vw,36px);font-weight:700;color:var(--fg);line-height:1.14;margin-bottom:38px}
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid hsla(215,25%,18%,.5)}
+.step:last-child{border-bottom:none}
+.sn{width:38px;height:38px;flex-shrink:0;border-radius:9px;background:hsla(174,72%,50%,.1);border:1px solid hsla(174,72%,50%,.2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--primary)}
+.st2{font-family:var(--fd);font-size:14.5px;font-weight:700;color:var(--fg);margin-bottom:3px}
+.sd2{font-size:12.5px;color:var(--muted-fg);line-height:1.55}
+.how-img-wrap{border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow),var(--glow-sm);position:relative}
+.how-img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,hsla(174,72%,50%,.06) 0%,transparent 55%);pointer-events:none}
+.how-img{width:100%;height:420px;object-fit:cover;object-position:center;filter:brightness(.78) saturate(.82);display:block}
+
+.cta{position:relative;text-align:center;padding:110px 40px;overflow:hidden}
+.cta-bg{position:absolute;inset:0;z-index:0}
+.cta-bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.18) saturate(.45)}
+.cta-ov{position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,hsla(220,25%,6%,.5) 35%,hsla(220,25%,6%,.5) 65%,var(--bg) 100%)}
+.cta-in{position:relative;z-index:1;max-width:620px;margin:0 auto}
+.cta-h2{font-family:var(--fd);font-size:clamp(26px,4.5vw,52px);font-weight:800;color:var(--fg);line-height:1.08;margin-bottom:18px}
+.cta-p{font-size:15px;color:var(--muted-fg);margin-bottom:36px;line-height:1.68}
+.btn-xl{font-size:15px;padding:13px 34px}
+
+footer{background:hsl(215,28%,8%);border-top:1px solid var(--border);padding:26px 40px;display:flex;align-items:center;justify-content:space-between}
+.foot-logo{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-size:12.5px;font-weight:700;letter-spacing:.07em;color:var(--muted-fg)}
+.foot-box{width:24px;height:24px;border-radius:5px;background:var(--gp);opacity:.75;display:flex;align-items:center;justify-content:center}
+.foot-copy{font-size:12px;color:var(--muted-fg)}
+
+.r{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.r.on{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.04s}.d2{transition-delay:.11s}.d3{transition-delay:.18s}
+.d4{transition-delay:.25s}.d5{transition-delay:.32s}.d6{transition-delay:.39s}
+
+@media(max-width:920px){
+  .cap-grid{grid-template-columns:1fr 1fr}
+  .how-wrap{grid-template-columns:1fr;gap:44px}
+  .how-right{order:-1}
+  .how-img{height:280px}
+}
+@media(max-width:640px){
+  .cap-grid{grid-template-columns:1fr}
+  .nav-mid{display:none}
+  section{padding:64px 20px}
+  .hero{padding:100px 20px 64px}
+  .nav{padding:0 18px}
+  footer{flex-direction:column;gap:8px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="{{ url_for('index') }}" class="logo">
+    <div class="logo-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="hsl(220,25%,6%)" stroke-width="2.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    Mechlogix
+  </a>
+  <div class="nav-mid">
+    <a href="#home" class="nl">Home</a>
+    <a href="#capabilities" class="nl">Features</a>
+    <a href="#how" class="nl">About</a>
+  </div>
+  <div class="nav-r">
+    <a href="{{ url_for('login') }}" class="btn-ghost">Sign In</a>
+    <a href="{{ url_for('login') }}" class="btn">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hbg">
+      <img class="hbg-img"
+      src="{{ url_for('template_asset', filename='hero.jpg') }}"
+      alt=""
+      />
+    <div class="hbg-ov"></div>
+    <div class="hbg-grid"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+  </div>
+  <div class="hero-in">
+    <div class="badge">
+      <span class="dot"></span>
+      Mechlogix Manufacturing Intelligence
+    </div>
+    <h1 class="h1">
+      <span class="h1w">Engineering Designs to</span>
+      <span class="h1t">Manufacturing Plans</span>
+    </h1>
+    <p class="hero-p">
+      Mechlogix uses LLMs, reinforcement learning, digital twin simulation, and
+      explainable AI to automatically convert engineering designs into optimized,
+      validated manufacturing plans - reducing time, cost, and errors in defense
+      manufacturing.
+    </p>
+    <div class="hero-btns">
+      <a href="{{ url_for('login') }}" class="btn btn-lg">
+        Get Started Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="{{ url_for('login') }}" class="btn-ol">Sign In</a>
+    </div>
+  </div>
+</section>
+
+<section class="cap-sec" id="capabilities">
+  <div class="lbl r">Capabilities</div>
+  <h2 class="st r d1">AI-Powered Defense Manufacturing</h2>
+  <p class="sd r d2">Leveraging cutting-edge artificial intelligence to transform how defense engineering designs become reality.</p>
+  <div class="cap-grid">
+    <div class="cc r d1">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></div>
+      <div class="cn">LLM Intelligence</div>
+      <div class="ct">Gemini analyzes engineering designs with deep contextual understanding.</div>
+    </div>
+    <div class="cc r d2">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="cn">Digital Twin Simulation</div>
+      <div class="ct">Virtual validation ensures manufacturability before real production begins.</div>
+    </div>
+    <div class="cc r d3">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div class="cn">Explainable AI (XAI)</div>
+      <div class="ct">Transparent reasoning behind every manufacturing decision made.</div>
+    </div>
+    <div class="cc r d4">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div class="cn">RL Optimization</div>
+      <div class="ct">Reinforcement learning continuously optimizes cost, time, and quality.</div>
+    </div>
+    <div class="cc r d5">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="cn">Risk Detection</div>
+      <div class="ct">Identify potential manufacturing risks and bottlenecks proactively.</div>
+    </div>
+    <div class="cc r d6">
+      <div class="ci"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+      <div class="cn">Process Optimization</div>
+      <div class="ct">AI-driven process selection for maximum efficiency and precision.</div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="how-wrap">
+    <div class="how-left">
+      <div class="how-lbl r">How It Works</div>
+      <h2 class="how-h2 r d1">From Design to Production<br/>in Minutes</h2>
+      <div class="steps">
+        <div class="step r d1">
+          <div class="sn">01</div>
+          <div><div class="st2">Upload Design</div><div class="sd2">Submit engineering requirements via PDF or text input.</div></div>
+        </div>
+        <div class="step r d2">
+          <div class="sn">02</div>
+          <div><div class="st2">AI Analysis</div><div class="sd2">Gemini interprets materials, tolerances, and constraints.</div></div>
+        </div>
+        <div class="step r d3">
+          <div class="sn">03</div>
+          <div><div class="st2">Plan Generation</div><div class="sd2">Optimized manufacturing workflow created automatically.</div></div>
+        </div>
+        <div class="step r d4">
+          <div class="sn">04</div>
+          <div><div class="st2">Virtual Validation</div><div class="sd2">Digital twin simulates and validates the plan.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="how-right r d2">
+      <div class="how-img-wrap">
+        <img class="how-img"
+          src="{{ url_for('template_asset', filename='how-it-works.jpg') }}"
+          alt="Engineer with AI"
+          />
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-bg">
+    <img src="{{ url_for('template_asset', filename='cta.jpg') }}" alt=""/>
+    <div class="cta-ov"></div>
+  </div>
+  <div class="cta-in">
+    <h2 class="cta-h2 r">Ready to Transform Defense<br/>Manufacturing?</h2>
+    <p class="cta-p r d1">Join the next generation of AI-powered manufacturing planning. Start converting your engineering designs today.</p>
+    <a href="{{ url_for('login') }}" class="btn btn-xl r d2">
+      Start Now
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-logo">
+    <div class="foot-box">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="hsl(220,25%,6%)" stroke-width="2.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    Mechlogix
+  </div>
+  <p class="foot-copy">&copy; 2026 Mechlogix. All rights reserved.</p>
+</footer>
+
+<script>
+const io = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('on') }), { threshold:.1, rootMargin:'0px 0px -36px 0px' });
+document.querySelectorAll('.r').forEach(el => io.observe(el));
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 50), {passive:true});
+</script>
+</body>
+</html>
