@@ -10,6 +10,9 @@
   .flash-message { padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); }
   .flash-message.success { border-color: rgba(0,212,170,0.3); }
   .flash-message.warning { border-color: rgba(245,158,11,0.3); }
+  @media (max-width: 640px) {
+    .flash-message { padding: 10px 12px; }
+  }
 </style>
 </head>
 <body data-page="dashboard" class="{{ theme_class }}">

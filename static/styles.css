@@ -62,13 +62,14 @@ html:has(body.theme-light) {
 }
 
 html, body {
-  height: 100%;
+  min-height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a { text-decoration: none; color: inherit; }
@@ -1182,3 +1183,137 @@ input, textarea { font-family: var(--font); }
 .delay-3 { animation-delay: 0.15s; }
 .delay-4 { animation-delay: 0.20s; }
 .delay-5 { animation-delay: 0.25s; }
+
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .settings-layout { grid-template-columns: 1fr; }
+  .sim-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    height: auto;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .nav-logo {
+    margin-right: 0;
+  }
+
+  .nav-links {
+    order: 3;
+    flex: 1 1 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-right {
+    margin-left: auto;
+    gap: 8px;
+  }
+
+  .page,
+  .page-full {
+    padding: 24px 18px;
+  }
+
+  .grid-2,
+  .accordion-grid,
+  .sim-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    padding: 0 12px;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    white-space: nowrap;
+  }
+
+  .plan-header,
+  .plan-back,
+  .xai-bar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .accordion-body {
+    padding: 0 16px 16px 16px;
+  }
+
+  .xai-bar-label,
+  .xai-bar-pct {
+    width: auto;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-user-name {
+    display: none;
+  }
+
+  .btn,
+  .btn-lg {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-right .btn-sm {
+    width: auto;
+  }
+
+  .card-pad,
+  .summary-section,
+  .metric-card,
+  .plan-row,
+  .quick-action {
+    padding: 16px;
+  }
+
+  .quick-action,
+  .plan-row,
+  .metric-card {
+    flex-wrap: wrap;
+  }
+
+  .plan-row-arrow,
+  .quick-action-arrow,
+  .ml-auto {
+    margin-left: 0;
+  }
+
+  .login-right {
+    padding: 32px 20px;
+  }
+
+  .login-features {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-value,
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .quality-bar,
+  .plan-meta {
+    flex-wrap: wrap;
+  }
+}

@@ -10,6 +10,10 @@
   .flash-message { padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); }
   .flash-message.success { border-color: rgba(0,212,170,0.3); }
   .flash-message.warning { border-color: rgba(245,158,11,0.3); }
+  .floating-export { position: fixed; bottom: 24px; right: 32px; z-index: 50; }
+  @media (max-width: 900px) {
+    .floating-export { left: 18px; right: 18px; bottom: 18px; }
+  }
 </style>
 </head>
 <body data-page="" class="{{ theme_class }}">
@@ -272,7 +276,7 @@
   </div>
 </div>
 
-<div style="position:fixed;bottom:24px;right:32px;z-index:50">
+<div class="floating-export">
   <button class="btn btn-primary" style="box-shadow:0 4px 20px rgba(0,212,170,0.3)" type="button" onclick="window.print()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Export Full Report
