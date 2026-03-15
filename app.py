@@ -2,10 +2,12 @@ import json
 import os
 import re
 import secrets
+from io import BytesIO
 from datetime import datetime, timezone
 from functools import wraps
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from xml.sax.saxutils import escape
 
 import fitz
 import google.generativeai as genai
@@ -17,6 +19,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     session,
     url_for,
@@ -183,6 +186,200 @@ def clamp_percent(value):
         return max(0, min(100, int(float(value))))
     except (TypeError, ValueError):
         return 0
+
+
+def _pdf_safe_text(value):
+    return escape(str(value or "")).replace("\n", "<br/>")
+
+
+def build_plan_pdf(plan, parsed_json):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=16 * mm,
+        rightMargin=16 * mm,
+        topMargin=16 * mm,
+        bottomMargin=16 * mm,
+        title=plan["title"],
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "PlanTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=20,
+        leading=24,
+        textColor=colors.HexColor("#142033"),
+        spaceAfter=12,
+    )
+    heading_style = ParagraphStyle(
+        "SectionHeading",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=16,
+        textColor=colors.HexColor("#00a884"),
+        spaceBefore=10,
+        spaceAfter=6,
+    )
+    subheading_style = ParagraphStyle(
+        "SubHeading",
+        parent=styles["Heading3"],
+        fontName="Helvetica-Bold",
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor("#142033"),
+        spaceBefore=8,
+        spaceAfter=4,
+    )
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor("#26384d"),
+        spaceAfter=4,
+    )
+    mono_style = ParagraphStyle(
+        "Mono",
+        parent=body_style,
+        fontName="Courier",
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor("#4a5a70"),
+    )
+
+    story = [
+        Paragraph(_pdf_safe_text(plan["title"]), title_style),
+        Paragraph(
+            _pdf_safe_text(
+                f"Status: {plan['status']} | Model: Google Gemini | Input: {humanize_input_type(plan['input_type'])} | Created: {format_datetime(plan['created_at'])}"
+            ),
+            body_style,
+        ),
+        Spacer(1, 8),
+    ]
+
+    story.append(Paragraph("Original Input", heading_style))
+    story.append(Paragraph(_pdf_safe_text(plan["input_text"]), body_style))
+
+    if parsed_json:
+        metrics = Table(
+            [
+                ["Estimated Cost", f"${parsed_json['cost_estimate']['min']} - ${parsed_json['cost_estimate']['max']}"],
+                ["Estimated Time", f"{parsed_json['time_estimate']['min_days']} - {parsed_json['time_estimate']['max_days']} business days"],
+                ["Quality Score", f"{parsed_json['quality_score']}/100"],
+            ],
+            colWidths=[42 * mm, 120 * mm],
+        )
+        metrics.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.whitesmoke),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#c2cfdf")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d7e0ec")),
+                    ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#142033")),
+                    ("PADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        story.append(Spacer(1, 8))
+        story.append(metrics)
+        story.append(Spacer(1, 10))
+
+        story.append(Paragraph("Plan Summary", heading_style))
+        story.append(Paragraph(_pdf_safe_text(parsed_json.get("plan_summary")), body_style))
+        story.append(Paragraph("Design Analysis", heading_style))
+        story.append(Paragraph(_pdf_safe_text(parsed_json.get("design_analysis")), body_style))
+
+        story.append(Paragraph("Manufacturing Plan", heading_style))
+        for step in parsed_json.get("steps", []):
+            story.append(
+                Paragraph(
+                    _pdf_safe_text(f"Step {step.get('step')}: {step.get('name')}"),
+                    subheading_style,
+                )
+            )
+            if step.get("subtitle"):
+                story.append(Paragraph(_pdf_safe_text(step["subtitle"]), body_style))
+            if step.get("description"):
+                story.append(Paragraph(_pdf_safe_text(step["description"]), body_style))
+
+            for label, items in (
+                ("Equipment", step.get("equipment", [])),
+                ("Materials", step.get("materials", [])),
+                ("Quality Checks", step.get("quality_checks", [])),
+            ):
+                if items:
+                    story.append(Paragraph(label, subheading_style))
+                    for item in items:
+                        story.append(Paragraph(_pdf_safe_text(f"- {item}"), body_style))
+
+            risks = step.get("risks", [])
+            if risks:
+                story.append(Paragraph("Risks and Mitigations", subheading_style))
+                for risk in risks:
+                    issue = risk.get("issue", "")
+                    mitigation = risk.get("mitigation", "")
+                    story.append(Paragraph(_pdf_safe_text(f"- {issue} -> {mitigation}"), body_style))
+
+        xai_factors = parsed_json.get("xai_factors", [])
+        if xai_factors:
+            story.append(Paragraph("XAI Explainability", heading_style))
+            for factor in xai_factors:
+                story.append(
+                    Paragraph(
+                        _pdf_safe_text(f"- {factor.get('label')}: {clamp_percent(factor.get('score'))}%"),
+                        body_style,
+                    )
+                )
+
+        simulation = parsed_json.get("simulation")
+        if simulation:
+            story.append(Paragraph("Digital Twin Simulation", heading_style))
+            simulation_rows = [
+                ["Process Yield", f"{simulation.get('yield_pct', '')}%"],
+                ["Dimensional Accuracy", str(simulation.get("accuracy", ""))],
+                ["Optimized Cost", f"${simulation.get('optimized_cost', '')}"],
+                ["Optimized Lead Time", f"{simulation.get('optimized_days', '')} days"],
+                ["Compliance", f"{simulation.get('compliance_pct', '')}%"],
+                ["Risk Factors", str(simulation.get("risk_count", ""))],
+            ]
+            simulation_table = Table(simulation_rows, colWidths=[50 * mm, 112 * mm])
+            simulation_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.whitesmoke),
+                        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#c2cfdf")),
+                        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d7e0ec")),
+                        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                        ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+                        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#142033")),
+                        ("PADDING", (0, 0), (-1, -1), 6),
+                    ]
+                )
+            )
+            story.append(simulation_table)
+
+        story.append(PageBreak())
+
+    story.append(Paragraph("Raw Response", heading_style))
+    story.append(Paragraph(_pdf_safe_text(plan["raw_response"]), mono_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
 
 
 @app.before_request
@@ -454,6 +651,25 @@ def plan_detail(plan_id):
         plan=plan,
         parsed_json=parsed_json,
         active_tab=active_tab,
+    )
+
+
+@app.route("/plan/<int:plan_id>/export")
+@login_required
+def export_plan(plan_id):
+    plan = get_plan_for_user(plan_id, g.user["id"])
+    if not plan:
+        flash("Plan not found.", "warning")
+        return redirect(url_for("dashboard"))
+
+    parsed_json = parse_json_field(plan)
+    pdf_buffer = build_plan_pdf(plan, parsed_json)
+    safe_title = re.sub(r"[^A-Za-z0-9._-]+", "-", plan["title"]).strip("-") or f"plan-{plan_id}"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"{safe_title}.pdf",
     )
 
 
